@@ -1,0 +1,34 @@
+.message {
+  display: flex;
+}
+
+.message p {
+  padding: 15px 22px;
+  border-radius: 25px;
+  line-height: 1.5;
+  max-width: 80%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  margin: 0;
+}
+
+.user-message {
+  justify-content: flex-end;
+  align-self: flex-end;
+}
+
+.user-message p {
+  background-color: var(--bubble-bg-user);
+  color: white;
+  border-bottom-right-radius: 10px;
+}
+
+.bot-message {
+  justify-content: flex-start;
+  align-self: flex-start;
+}
+
+.bot-message p {
+  background-color: var(--bubble-bg-bot);
+  color: var(--text-color-light);
+  border-bottom-left-radius: 10px;
+}

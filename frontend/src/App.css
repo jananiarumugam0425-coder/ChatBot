@@ -1,0 +1,26 @@
+:root {
+  --primary-color: #007bff; /* A bright blue for accents */
+  --bg-color-dark: #1e1e1e; /* Main background color */
+  --card-bg: #2c2c2c; /* Background for chat area */
+  --text-color-light: #f4f4f4; /* Main text color */
+  --text-color-secondary: #999;
+  --bubble-bg-user: #007bff; /* Blue chat bubble for user */
+  --bubble-bg-bot: #444; /* Dark gray chat bubble for bot */
+  --shadow-dark: 0 4px 10px rgba(0, 0, 0, 0.5);
+  --border-radius: 12px;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color-dark);
+  margin: 0;
+  padding: 0;
+  color: var(--text-color-light);
+}
+
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}

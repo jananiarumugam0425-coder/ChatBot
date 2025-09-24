@@ -1,0 +1,11 @@
+employee_id,employee_name,project,date,hours
+1,John Doe,Project Alpha,2025-09-15,8
+1,John Doe,Project Alpha,2025-09-16,8
+1,John Doe,Project Beta,2025-09-17,9
+1,John Doe,Project Alpha,2025-09-18,9
+1,John Doe,Project Gamma,2025-09-19,8
+2,Jane Smith,Project Beta,2025-09-15,8
+2,Jane Smith,Project Gamma,2025-09-16,8
+2,Jane Smith,Project Alpha,2025-09-17,8
+2,Jane Smith,Project Beta,2025-09-18,8
+2,Jane Smith,Project Gamma,2025-09-19,8
