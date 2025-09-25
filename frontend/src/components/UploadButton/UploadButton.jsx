@@ -1,52 +1,34 @@
-import React, { useState } from 'react';
-import './UploadButton.css';
+import React from 'react';
+import './UploadButton.css'; // Make sure the path is correct
 
-const UPLOAD_API_URL = "http://127.0.0.1:5000/upload";
-
-const UploadButton = () => {
-    const [status, setStatus] = useState('');
-
-    const handleFileChange = async (event) => {
-        const file = event.target.files[0];
-        if (!file) {
-            return;
+const UploadButton = ({ onFileUpload, disabled }) => {
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            onFileUpload(file);
         }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        setStatus('Uploading...');
-
-        try {
-            const response = await fetch(UPLOAD_API_URL, {
-                method: 'POST',
-                body: formData,
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                setStatus('Upload successful!');
-            } else {
-                setStatus(`Upload failed: ${data.error}`);
-            }
-        } catch (error) {
-            setStatus('Upload failed. Server error.');
-            console.error('Upload error:', error);
-        }
+        e.target.value = null; 
     };
 
     return (
-        <div className="upload-container">
-            <label htmlFor="file-upload" className="upload-btn">
-                <span className="upload-icon">📁</span> Upload Timesheet
+        // Note: The outer div is often used by ChatPage for flex alignment
+        <div>
+            <label 
+                htmlFor="file-upload" 
+                // CRITICAL: Use the pure CSS class to apply royal blue
+                className={`upload-label ${disabled ? 'disabled' : ''}`}
+                title="Upload Timesheet CSV"
+            >
+                Upload
             </label>
-            <input 
-                id="file-upload" 
-                type="file" 
-                accept=".csv" 
-                onChange={handleFileChange} 
-                style={{ display: 'none' }} 
+            <input
+                type="file"
+                id="file-upload"
+                className="upload-input" // This class hides the default file input
+                onChange={handleFileChange}
+                disabled={disabled}
+                accept=".csv"
             />
-            {status && <span className="upload-status">{status}</span>}
         </div>
     );
 };

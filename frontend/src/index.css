@@ -1,0 +1,20 @@
+/* Base styles for the entire application */
+body {
+    background-color: #2e3549;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+/* Base styles for common elements */
+button {
+    cursor: pointer;
+    border: none;
+}
+
+input:focus,
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #4c52f5;
+}

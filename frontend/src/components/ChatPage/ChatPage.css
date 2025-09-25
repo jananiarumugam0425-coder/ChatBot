@@ -1,134 +1,370 @@
-/* ChatPage.css */
+/* --- Global & Container Styles (Dark Background) --- */
 
-.dashboard-container {
+.chat-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #1a202c; /* Dark background */
+    background-color: #121212; /* Very dark background */
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #e0e0e0; /* Default light text color */
 }
 
-.main-content {
-    background-color: #2d3748; /* Darker gray for the chat container */
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+.chat-card {
+    background-color: #1e1e1e; /* Slightly lighter dark card background */
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     width: 100%;
-    max-width: 900px;
+    max-width: 800px;
     height: 90vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    color: #cbd5e0;
 }
+
+/* --- Header & Authentication --- */
 
 .chat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #4a5568;
-    background-color: #2d3748;
+    padding: 15px 20px;
+    background-color: #242424; /* Darker header */
+    color: #ffffff;
+    border-bottom: 1px solid #3a3a3a;
 }
 
-.chat-header h2 {
+.chat-title {
     font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
+    font-weight: 600;
     margin: 0;
 }
 
-.status-online {
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    color: #48bb78;
+.user-info {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-right: 15px;
 }
 
-.status-dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    background-color: #48bb78;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-    animation: pulse-green 2s infinite;
+.sign-out-button {
+    background: #e94560; /* Red/Action color */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
 }
 
-@keyframes pulse-green {
-    0% {
-        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(72, 187, 120, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
-    }
+.sign-out-button:hover {
+    background-color: #d82943;
 }
 
-.chat-area {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow: hidden;
-    position: relative;
-}
+/* --- Messages Area --- */
 
 .chat-messages {
     flex-grow: 1;
-    padding: 1.5rem;
+    padding: 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
+
+/* --- Individual Message Styles --- */
 
 .message {
-    padding: 1rem 1.25rem;
-    border-radius: 1.25rem;
-    margin-bottom: 1rem;
     max-width: 80%;
-    animation: fadeInUp 0.5s ease-out;
+    padding: 12px 18px;
+    border-radius: 18px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.message.user {
-    background-color: #4299e1; /* Royal blue for user messages */
-    color: white;
+.user-message {
     align-self: flex-end;
-    margin-left: auto;
-    border-bottom-right-radius: 0.25rem;
+    background-color: #4169e1; /* ROYAL BLUE for user messages */
+    color: white;
+    border-bottom-right-radius: 5px;
 }
 
-.message.bot {
-    background-color: #4a5568; /* Slightly lighter gray for bot messages */
-    color: #cbd5e0;
+.bot-message {
     align-self: flex-start;
-    margin-right: auto;
-    border-bottom-left-radius: 0.25rem;
+    background-color: #333333; /* Dark grey for bot messages */
+    color: #e0e0e0;
+    border-bottom-left-radius: 5px;
 }
 
-.loading-message {
-    font-style: italic;
-    color: #a0aec0;
-    margin-top: 1rem;
-    align-self: flex-start;
-    animation: fadePulse 1.5s infinite;
+.message-text {
+    margin: 0;
+    white-space: pre-wrap;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* --- Input Area, Chat Input, and Send Button --- */
+
+.chat-input-form {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid #3a3a3a;
+    background-color: #242424;
 }
 
-@keyframes fadePulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+.chat-input {
+    flex-grow: 1;
+    padding: 12px 15px;
+    margin-right: 10px;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #333333; /* Input field background */
+    color: #e0e0e0;
+    transition: border-color 0.2s;
 }
+
+.chat-input:focus {
+    border-color: #4169e1; /* ROYAL BLUE focus highlight */
+    outline: none;
+}
+
+/* --- Input Area, Chat Input, and Send Button --- */
+
+.chat-input-form {
+    /* Use flex on the outer container */
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid #3a3a3a;
+    background-color: #242424;
+}
+
+/* NEW/CORRECTED: This wrapper targets the <form> element for proper flex behavior */
+.chat-input-form-inner {
+    display: flex;
+    flex-grow: 1; /* CRITICAL: Allows the form to fill the remaining horizontal space */
+    align-items: center;
+    gap: 10px; /* Space between input and button */
+}
+
+.chat-input {
+    flex-grow: 1; /* CRITICAL: The input field expands to fill space */
+    padding: 12px 15px;
+    /* margin-right is removed because we use 'gap' on the inner form */
+    border: 1px solid #555555;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #333333; /* Input field background */
+    color: #e0e0e0;
+    transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+    border-color: #4169e1; /* ROYAL BLUE focus highlight */
+    outline: none;
+}
+
+.send-button {
+    background-color: #4169e1; /* ROYAL BLUE for the send button */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-button:hover:not(:disabled) {
+    background-color: #345bbd; /* Slightly darker blue on hover */
+}
+
+.send-button:disabled {
+    background-color: #555555;
+    cursor: not-allowed;
+}
+
+.send-icon {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+/* --- Upload Button Styling --- */
+.upload-label {
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: white;
+    transition: background-color 0.2s;
+    background-color: #4169e1; /* ROYAL BLUE */
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.upload-label:hover {
+    background-color: #345bbd;
+}
+
+.upload-label.disabled {
+    background-color: #555555;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- Login/Auth Page Styling (Dark Theme) --- */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #121212; 
+}
+
+.login-card {
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-title {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 30px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #555555;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: #333333;
+    color: #e0e0e0;
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4169e1; /* ROYAL BLUE */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: #345bbd;
+}
+
+.login-error {
+    color: #e94560;
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* --- Input Area, Chat Input, and Send Button --- */
+
+/* NEW: This is the main container for the upload button and the input form */
+.chat-input-form-outer {
+    /* Use flex to align items horizontally */
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid #3a3a3a;
+    background-color: #242424;
+    gap: 10px; /* Add space between upload button and input form */
+}
+
+/* This container holds the input and send button, and must take up the rest of the space */
+.chat-input-form-inner {
+    display: flex;
+    flex-grow: 1; /* CRITICAL: Allows the form to fill the remaining space */
+    align-items: center;
+}
+
+.chat-input {
+    flex-grow: 1;
+    padding: 12px 15px;
+    margin-right: 10px;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #333333; /* Input field background */
+    color: #e0e0e0;
+    transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+    border-color: #4169e1; /* ROYAL BLUE focus highlight */
+    outline: none;
+}
+
+.send-button {
+    background-color: #4169e1; /* ROYAL BLUE */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-button:hover:not(:disabled) {
+    background-color: #345bbd; /* Slightly darker blue on hover */
+}
+
+.send-button:disabled {
+    background-color: #555555;
+    cursor: not-allowed;
+}
+
+.send-icon {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+/* --- Upload Button Styling (Updated to use a wrapper div and the label class) --- */
+.upload-label {
+    /* Removed margin-right because we use gap on the outer container now */
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: white;
+    transition: background-color 0.2s;
+    background-color: #4169e1; /* ROYAL BLUE */
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.upload-label:hover {
+    background-color: #345bbd;
+}
+
+.upload-label.disabled {
+    background-color: #555555;
+    cursor: not-allowed;
+}
+/* ... rest of ChatPage.css */

@@ -1,29 +1,35 @@
 .upload-container {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
 }
 
-.upload-btn {
-    background-color: #3f51b5;
+.upload-input {
+    display: none;
+}
+
+.upload-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    /* Styling for the dark theme */
+    background-color: #4c52f5; /* ROYAL BLUE */
     color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 10px 15px;
+    border-radius: 20px; 
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.3s;
+    font-size: 0.95rem;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); 
+    white-space: nowrap;
 }
 
-.upload-btn:hover {
-    background-color: #303f9f;
+.upload-label:hover {
+    background-color: #3a41e6; /* Darker royal blue on hover */
+    transform: translateY(-1px);
 }
 
 .upload-icon {
-    margin-right: 8px;
-}
-
-.upload-status {
-    font-size: 0.9em;
-    color: #888;
+    stroke: white;
 }
