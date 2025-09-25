@@ -1,2 +1,3 @@
-username,password,session_token
-Janani@710,123456,5677e482-399b-4047-a0cb-6e942a5cbf3b
+username,password_hash,full_name,email,phone_number,country,session_token
+Jeeva,scrypt:32768:8:1$KadSPc3UsIty0Cvf$5ed0e3a1834fc4cf1325bb696c30fd52dde64ae5c68c3bda27e02a82c2465ea90b8e0858d311ea4640568c0a62dc4175b334b0481ca0a6426f5deaa4e451a47b,Jeeva,janania.ug22.cb@francisxavier.ac.in,+919345997736,India,f161a03f-3cc5-4b4e-86c1-10de664ebcf0
+janani@710,scrypt:32768:8:1$jeeLk4ciX2pngG6c$290dbe34d4cc33456101ea770cbb0f82072f2a649789583a2306787c638e779617ce578329b4c986010a93208474a316802a1d837593076d59b1710df6dcf6fb,Janani A,Jananiarumugam0425@gmail.com,+919345997736,India,e6d1d9ec-ec0e-437e-be36-f9f94ad9c17e

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './ChatPage.css';
+import './ChatPage.css'; 
+// Assuming you have ChatMessage and UploadButton components
+import ChatMessage from '../ChatMessage/ChatMessage';
 import UploadButton from '../UploadButton/UploadButton'; 
-// Import the message component
-import ChatMessage from '../ChatMessage/ChatMessage'; 
 
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
@@ -18,21 +18,25 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Fetch chat history on component mount
+    // Fetch chat history on component mount or whenever the token is set/changes
     useEffect(() => {
-        fetchChatHistory();
-    }, [sessionToken]);
+        if (sessionToken) { // CRITICAL: Only attempt to fetch if the token is valid
+            fetchChatHistory();
+        }
+    }, [sessionToken]); // Dependency ensures this runs after successful login
 
     const fetchChatHistory = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/chat_history`, {
                 headers: {
+                    // *** CRITICAL FIX: Correct Authorization header format ***
                     'Authorization': `Bearer ${sessionToken}`
                 }
             });
 
             if (response.status === 401) {
-                onSignOut();
+                // If the token fails verification, sign out the user
+                onSignOut(); 
                 return;
             }
 
@@ -41,161 +45,150 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
             }
 
             const data = await response.json();
-            if (data.history) {
-                setMessages(data.history);
-            }
-        } catch (err) {
-            console.error("Error fetching chat history:", err);
+            setMessages(data.history || []);
+
+        } catch (error) {
+            console.error("Error fetching chat history:", error);
+            setError("Could not load chat history.");
         }
     };
-
-    const handleFileUpload = async (file) => {
-        if (isLoading) return;
-        setIsLoading(true);
-        setError('');
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const tempBotMessage = {
-            sender: 'bot', 
-            text: `Processing file: ${file.name}... Please wait.`, 
-            timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, tempBotMessage]);
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            setMessages(prev => {
-                const updated = [...prev];
-                updated.pop(); 
-                if (response.ok) {
-                    updated.push({ sender: 'bot', text: data.message, timestamp: new Date().toISOString() });
-                } else {
-                    updated.push({ sender: 'bot', text: `Upload Error: ${data.error || 'Unknown issue.'}`, timestamp: new Date().toISOString() });
-                }
-                return updated;
-            });
-
-        } catch (err) {
-            console.error("Upload error:", err);
-            setMessages(prev => {
-                const updated = [...prev];
-                updated.pop();
-                updated.push({ sender: 'bot', text: 'Critical Network Error: Could not reach the server.', timestamp: new Date().toISOString() });
-                return updated;
-            });
-            setError('File upload failed. Check server status.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    
+    // ... (handleSendMessage, handleFileUpload and other functions)
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        const userQuery = input.trim();
+        if (!userQuery || isLoading || !sessionToken) return;
 
-        const userMessage = { sender: 'user', text: input.trim(), timestamp: new Date().toISOString() };
-        setMessages(prev => [...prev, userMessage]);
-        setInput('');
         setIsLoading(true);
+        setInput('');
         setError('');
-        
-        const thinkingMessage = { sender: 'bot', text: 'Thinking...', timestamp: new Date().toISOString() };
-        setMessages(prev => [...prev, thinkingMessage]);
+
+        const newMessage = { sender: 'user', text: userQuery, timestamp: new Date().toISOString() };
+        setMessages(prev => [...prev, newMessage]);
 
         try {
             const response = await fetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
+                    'Authorization': `Bearer ${sessionToken}` // Must include token
                 },
-                body: JSON.stringify({ query: userMessage.text })
+                body: JSON.stringify({ query: userQuery, timestamp: newMessage.timestamp }),
             });
 
+            if (response.status === 401) {
+                onSignOut(); // Sign out on chat 401
+                return;
+            }
+            
             const data = await response.json();
 
-            setMessages(prev => {
-                const updated = [...prev];
-                updated.pop(); 
-                if (response.ok) {
-                    updated.push({ sender: 'bot', text: data.answer, timestamp: new Date().toISOString() });
-                } else {
-                    updated.push({ sender: 'bot', text: `LLM Error: ${data.error || 'An unexpected error occurred.'}`, timestamp: new Date().toISOString() });
-                }
-                return updated;
-            });
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to get response from chatbot.');
+            }
+
+            const botMessage = { sender: 'bot', text: data.answer, timestamp: new Date().toISOString() };
+            setMessages(prev => [...prev, botMessage]);
 
         } catch (err) {
-            console.error("Chat error:", err);
-            setMessages(prev => {
-                const updated = [...prev];
-                updated.pop();
-                updated.push({ sender: 'bot', text: 'Critical Network Error: Could not send message to server.', timestamp: new Date().toISOString() });
-                return updated;
-            });
-            setError('Failed to get a response from the server.');
+            console.error(err);
+            setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Use the imported ChatMessage component
-    const MessageComponent = ({ msg }) => (
-        <ChatMessage sender={msg.sender} text={msg.text} />
-    );
+    const handleFileUpload = async (file) => {
+        // ... (File upload logic - must also use sessionToken)
+        if (isLoading || !sessionToken) return;
+        setIsLoading(true);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionToken}` // Must include token
+                },
+                body: formData,
+            });
 
-    // --- Render ---
+            if (response.status === 401) {
+                onSignOut();
+                return;
+            }
+            
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'File upload failed.');
+            }
+            
+            // Add bot confirmation message
+            const botMessage = { sender: 'bot', text: data.message, timestamp: new Date().toISOString() };
+            setMessages(prev => [...prev, botMessage]);
+
+        } catch (err) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return (
         <div className="chat-container">
             <div className="chat-card">
                 <header className="chat-header">
                     <h1 className="chat-title">Timesheet Chatbot</h1>
-                    <div className="flex items-center space-x-4">
+                    <div className="user-controls">
                         <span className="user-info">Logged in as: <strong>{user}</strong></span>
-                        <button onClick={onSignOut} className="sign-out-button">Sign Out</button>
+                        <button onClick={onSignOut} className="sign-out-button">
+                            Sign Out
+                        </button>
                     </div>
                 </header>
 
-                <div className="chat-messages">
-                    {messages.map((msg, index) => (
-                        <MessageComponent key={index} msg={msg} />
-                    ))}
-                    {error && <MessageComponent msg={{ sender: 'bot', text: `System Alert: ${error}` }} />}
+                <main className="chat-messages">
+                    {messages.length === 0 && !isLoading ? (
+                        <div className="welcome-message">
+                            <p>Hello **{user}**! Welcome to the Timesheet Chatbot. Upload a CSV file to begin asking questions about your data.</p>
+                        </div>
+                    ) : (
+                        messages.map((msg, index) => (
+                            <ChatMessage key={index} sender={msg.sender} text={msg.text} />
+                        ))
+                    )}
+                    {isLoading && <ChatMessage sender="bot" text="Thinking..." />}
                     <div ref={chatEndRef} />
-                </div>
-                
-                {/* FINAL CRITICAL FIX: Aligning the upload button and the form */}
-                <div className="chat-input-form-outer"> {/* New wrapper for separation */}
-                    <UploadButton onFileUpload={handleFileUpload} disabled={isLoading} />
-                    
-                    {/* The form structure from ChatInput.jsx is brought inline/adapted here */}
-                    <form onSubmit={handleSendMessage} className="chat-input-form-inner">
-                        <input
-                            type="text"
-                            placeholder={isLoading ? "Processing, please wait..." : "Ask a question about the timesheet..."}
-                            className="chat-input"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            disabled={isLoading}
-                        />
-                        <button type="submit" className="send-button" disabled={!input.trim() || isLoading}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="send-icon">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                            </svg>
-                        </button>
-                    </form>
-                </div>
+                </main>
+
+                <footer className="chat-footer">
+                     {error && <div className="chat-error">{error}</div>}
+                    <div className="chat-input-form">
+                        {/* UploadButton component must be updated to use the new prop names if necessary */}
+                        <UploadButton onFileUpload={handleFileUpload} disabled={isLoading} /> 
+                        
+                        <form onSubmit={handleSendMessage} className="chat-input-form-inner">
+                            <input
+                                type="text"
+                                placeholder={isLoading ? "Processing, please wait..." : "Ask a question about the timesheet..."}
+                                className="chat-input"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                disabled={isLoading}
+                            />
+                            <button type="submit" className="send-button" disabled={!input.trim() || isLoading}>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="send-icon">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </footer>
             </div>
         </div>
     );

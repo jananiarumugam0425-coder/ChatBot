@@ -1,27 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Login.css';
+
+const API_BASE_URL = 'http://127.0.0.1:5000'; 
 
 const Login = ({ onLogin }) => {
     // State for login/signup credentials
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    // State for additional sign-up fields
+    
+    // State for all 5 sign-up fields
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState(''); 
+    const [country, setCountry] = useState('');         
     
     // UI State
     const [isSignUp, setIsSignUp] = useState(false);
     const [error, setError] = useState('');
 
+    // Clears fields when component mounts or authentication mode changes
+    useEffect(() => {
+        // ... (clearing logic remains the same)
+        setUsername('');
+        setPassword('');
+        setEmail('');
+        setFullName('');
+        setPhoneNumber(''); 
+        setCountry('');     
+        setError('');
+    }, [isSignUp]); 
+
+    // Helper function to determine CSS class for messages
+    const getErrorClass = () => {
+        if (!error) return '';
+        return error.includes('successful') ? 'login-success' : 'login-error';
+    }
+
     const handleAuth = async (e) => {
         e.preventDefault();
         setError('');
-        const apiUrl = 'http://127.0.0.1:5000';
-        const url = isSignUp ? `${apiUrl}/signup` : `${apiUrl}/login`;
+        const url = isSignUp ? `${API_BASE_URL}/signup` : `${API_BASE_URL}/login`;
 
-        // Prepare the body with required fields. Add extra fields only for sign up.
+        // Body construction with all 7 fields for Sign Up
         const body = isSignUp 
-            ? JSON.stringify({ username, password, full_name: fullName, email }) 
+            ? JSON.stringify({ 
+                username, 
+                password, 
+                full_name: fullName, 
+                email,
+                phone_number: phoneNumber,
+                country: country
+            }) 
             : JSON.stringify({ username, password });
 
         try {
@@ -36,22 +65,16 @@ const Login = ({ onLogin }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                // Handle authentication/signup errors
+                setPassword('');
                 throw new Error(data.error || 'Authentication failed.');
             }
 
             if (isSignUp) {
-                // Sign-up success: Show message, clear fields, switch to Login
                 setError('Sign-up successful! Please log in now.');
-                setUsername('');
-                setPassword('');
-                setFullName(''); 
-                setEmail('');
                 setIsSignUp(false);
-                
             } else if (data.session_token) {
-                // Successful login
-                onLogin(username, data.session_token);
+                // *** CRITICAL FIX: Ensure the token is passed up ***
+                onLogin(username, data.session_token); 
             }
         } catch (err) {
             setError(err.message);
@@ -59,28 +82,14 @@ const Login = ({ onLogin }) => {
     };
 
     const handleForgotPassword = () => {
-        // Updated placeholder message and timeout for error display
-        setError('Password reset is not enabled for this prototype. Please ensure you are using the correct credentials.');
-        
-        setTimeout(() => {
-            setError('');
-        }, 5000); 
+        // Placeholder implementation
+        setError('Password reset is not enabled for this prototype.');
+        setTimeout(() => setError(''), 5000); 
     };
 
     const handleToggleAuth = () => {
-        // Clear fields and error when toggling between forms
         setIsSignUp(!isSignUp);
         setError(''); 
-        setUsername('');
-        setPassword('');
-        setFullName('');
-        setEmail('');
-    }
-
-    // Function to handle the custom success class for styling
-    const getErrorClass = () => {
-        if (!error) return '';
-        return error.includes('successful') ? 'login-success' : 'login-error';
     }
 
     return (
@@ -91,64 +100,35 @@ const Login = ({ onLogin }) => {
                 </h2>
                 <form onSubmit={handleAuth} className="login-form" autoComplete="off">
                     
-                    {/* --- Sign Up Specific Fields --- */}
+                    {/* --- Sign Up Specific Fields (NEW) --- */}
                     {isSignUp && (
                         <>
-                            <input
-                                type="text"
-                                placeholder="Full Name"
-                                className="login-input"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                required
-                                autoComplete="name" // Good practice for full name
-                            />
-                            <input
-                                type="email"
-                                placeholder="Email"
-                                className="login-input"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                autoComplete="email" // Good practice for email
-                            />
+                            <input type="text" placeholder="Full Name" className="login-input" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
+                            <input type="email" placeholder="Email" className="login-input" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                            <input type="tel" placeholder="Phone Number" className="login-input" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required autoComplete="tel" />
+                            <input type="text" placeholder="Country" className="login-input" value={country} onChange={(e) => setCountry(e.target.value)} required autoComplete="country-name" />
                         </>
                     )}
 
                     {/* --- Common Fields --- */}
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        className="login-input"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        autoComplete="off" // Prevents saved usernames
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        className="login-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="new-password" // Helps prevent filling with old credentials
-                    />
+                    <input type="text" placeholder="Username" className="login-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="off" />
+                    <input type="password" placeholder="Password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
                     
-                    {/* --- Forgot Password Button --- */}
                     {!isSignUp && (
                          <button type="button" onClick={handleForgotPassword} className="forgot-password-button">
                             Forgot Password?
                          </button>
                     )}
                     
-                    {/* Error/Success Message */}
                     {error && <div className={getErrorClass()}>{error}</div>}
                     
                     <button 
                         type="submit" 
                         className="login-button"
-                        disabled={!username.trim() || !password.trim() || (isSignUp && (!fullName.trim() || !email.trim()))}
+                        // Disable button if any required field is empty
+                        disabled={!username.trim() || !password.trim() || 
+                            (isSignUp && (!fullName.trim() || !email.trim() || !phoneNumber.trim() || !country.trim()))
+                        }
                     >
                         {isSignUp ? 'Sign Up' : 'Log In'}
                     </button>
