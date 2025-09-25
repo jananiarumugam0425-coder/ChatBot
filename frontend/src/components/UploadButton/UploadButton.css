@@ -1,3 +1,5 @@
+/* UploadButton.css - Aligned for perfect vertical centering */
+
 .upload-container {
     display: flex;
     align-items: center;
@@ -7,29 +9,44 @@
     display: none;
 }
 
+/* UploadButton.css - Aligned for perfect vertical centering */
+/* ... (unchanged styles) ... */
+
 .upload-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     
-    /* Styling for the dark theme */
-    background-color: #4c52f5; /* ROYAL BLUE */
-    color: white;
-    padding: 10px 15px;
-    border-radius: 20px; 
+    background-color: #393A50; 
+    color: #E0E0E0;
+    /* CRITICAL FIX: Padding is now 14px to match the chat-input */
+    padding: 14px 20px; 
+    border-radius: 8px; 
     cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); 
+    font-weight: 500;
+    font-size: 0.95rem; 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
     white-space: nowrap;
+    border: 1px solid #4A4B60;
 }
 
-.upload-label:hover {
-    background-color: #3a41e6; /* Darker royal blue on hover */
-    transform: translateY(-1px);
+.upload-label:hover:not(.disabled) {
+    background-color: #00C853; /* Vibrant teal on hover */
+    color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 200, 83, 0.5);
+    border-color: #00C853;
+}
+
+.upload-label.disabled {
+    background-color: #393A50;
+    color: #A0A6B5;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
 }
 
 .upload-icon {
-    stroke: white;
+    stroke: currentColor; 
 }

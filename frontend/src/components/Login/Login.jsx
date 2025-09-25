@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import './Login.css';
 
+// Set the base URL for the Flask backend
 const API_BASE_URL = 'http://127.0.0.1:5000'; 
 
+// Define states for the different views/pages
 const VIEW_STATES = {
-    AUTH: 'auth',
-    VERIFY_USERNAME: 'verify_username', 
-    RESET_PASSWORD: 'reset_password', 
+    AUTH: 'auth', // Default view (handles Login and Sign Up toggle)
+    VERIFY_USERNAME: 'verify_username', // Step 1 of Forgot Password
+    RESET_PASSWORD: 'reset_password', // Step 2 of Forgot Password
 };
 
 const Login = ({ onLogin }) => {
-    // Auth State
+    // --- AUTHENTICATION STATE ---
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
@@ -18,7 +20,7 @@ const Login = ({ onLogin }) => {
     const [phoneNumber, setPhoneNumber] = useState(''); 
     const [country, setCountry] = useState('');    
     
-    // UI State
+    // --- UI & RESET STATE ---
     const [isSignUp, setIsSignUp] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
@@ -27,28 +29,32 @@ const Login = ({ onLogin }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
 
 
-    // --- CRITICAL FIX HERE ---
-    // Clears fields ONLY when changing between AUTH mode (Login/Signup) or when returning to AUTH view.
-    // It must NOT clear 'username' when moving from VERIFY_USERNAME to RESET_PASSWORD.
+    // Effect to manage state cleanup when switching modes/views
     useEffect(() => {
-        // Clear all fields when switching authentication mode
+        // Clear unnecessary fields when switching between views
         if (currentView === VIEW_STATES.AUTH) {
             setPassword('');
-            setFullName('');
-            setEmail('');
-            setPhoneNumber(''); 
-            setCountry('');     
+            setNewPassword('');
+            setConfirmPassword('');
+            // Only clear username if we're switching between login/signup mode
+            if (isSignUp) { 
+                setFullName('');
+                setEmail('');
+                setPhoneNumber(''); 
+                setCountry(''); 
+            } else {
+                 setFullName('');
+                 setEmail('');
+                 setPhoneNumber(''); 
+                 setCountry(''); 
+            }
         }
         
-        // Always clear messages on state change
+        // Always clear messages when the view or mode changes
         setError('');
         setMessage('');
-        setNewPassword('');
-        setConfirmPassword('');
         
-        // When switching from VERIFY to RESET, we intentionally keep 'username' state intact.
-        
-    }, [isSignUp, currentView]); // Keep dependencies as they are, but adjust logic inside
+    }, [isSignUp, currentView]); 
 
     // Helper function to determine CSS class for messages
     const getMessageClass = () => {
@@ -94,8 +100,9 @@ const Login = ({ onLogin }) => {
 
             if (isSignUp) {
                 setMessage('Sign-up successful! Please log in now.');
-                setIsSignUp(false);
+                setIsSignUp(false); // Switch back to login view
             } else if (data.session_token) {
+                // Successful login
                 onLogin(username, data.session_token); 
             }
         } catch (err) {
@@ -103,10 +110,10 @@ const Login = ({ onLogin }) => {
         }
     };
     
+    // Toggles between Login and Sign Up forms
     const handleToggleAuth = () => {
         setIsSignUp(!isSignUp);
-        // CRITICAL: We also need to clear username here when toggling between signup/login
-        setUsername(''); 
+        setUsername(''); // Clear username on toggle for fresh start
         setError(''); 
     }
 
@@ -119,8 +126,6 @@ const Login = ({ onLogin }) => {
         e.preventDefault();
         setError('');
         setMessage('');
-
-        // NOTE: username state is already set by the input field in the render function.
 
         if (!username.trim()) {
             setError('Please enter your username.');
@@ -137,13 +142,13 @@ const Login = ({ onLogin }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                // If backend returns a 404/400/error
+                // Displays "User not found." error from backend
                 throw new Error(data.error || 'Username verification failed.');
             }
 
-            // Success! The username is validated and stored in the state.
-            setMessage("Username verified. Please set your new password.");
-            setCurrentView(VIEW_STATES.RESET_PASSWORD); // Move to password reset step
+            // Success! Move to password reset step, keeping username in state
+            setMessage("Username verified. Set a new password.");
+            setCurrentView(VIEW_STATES.RESET_PASSWORD); 
 
         } catch (err) {
             setError(err.message);
@@ -156,15 +161,14 @@ const Login = ({ onLogin }) => {
         setError('');
         setMessage('');
 
-        // CRITICAL CHECK: Ensure username is still present in state
         if (!username.trim()) {
-            setError('Cannot reset password: Username was lost. Please restart the process.');
+            setError('Error: Username state lost. Please restart the process.');
             setCurrentView(VIEW_STATES.AUTH);
             return;
         }
 
         if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters long.');
+            setError('New password must be at least 6 characters long.');
             return;
         }
         if (newPassword !== confirmPassword) {
@@ -187,11 +191,12 @@ const Login = ({ onLogin }) => {
 
             setMessage(data.message);
             
-            // Redirect back to login after a short delay
+            // Redirect back to login after successful reset
             setTimeout(() => {
-                setUsername(''); // Clear username only after successful reset
+                setUsername(''); 
+                setPassword('');
                 setCurrentView(VIEW_STATES.AUTH);
-                setMessage('You can now log in with your new password.');
+                setMessage('Success! You can now log in with your new password.');
             }, 3000);
 
         } catch (err) {
@@ -201,7 +206,7 @@ const Login = ({ onLogin }) => {
 
 
     /* -------------------------------------------
-       --- RENDER LOGIC ---
+       --- RENDER FUNCTIONS ---
        ------------------------------------------- */
 
     const renderAuthForm = () => (
@@ -217,16 +222,15 @@ const Login = ({ onLogin }) => {
                 </>
             )}
 
-            {/* Common Fields (Username will be cleared on toggle/auth) */}
-            <input type="text" placeholder="Username" className="login-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="off" />
-            <input type="password" placeholder="Password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
+            {/* Common Fields */}
+            <input type="text" placeholder="Username" className="login-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" />
+            <input type="password" placeholder="Password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={isSignUp ? "new-password" : "current-password"} />
             
-            {/* Forgot Password Button */}
+            {/* Forgot Password Link (Only on Login View) */}
             {!isSignUp && (
                  <button 
                     type="button" 
                     onClick={() => {
-                        // Clear password field but KEEP username if it was partially entered
                         setPassword(''); 
                         setCurrentView(VIEW_STATES.VERIFY_USERNAME);
                     }} 
@@ -239,9 +243,6 @@ const Login = ({ onLogin }) => {
             <button 
                 type="submit" 
                 className="login-button"
-                disabled={!username.trim() || !password.trim() || 
-                    (isSignUp && (!fullName.trim() || !email.trim() || !phoneNumber.trim() || !country.trim()))
-                }
             >
                 {isSignUp ? 'Sign Up' : 'Log In'}
             </button>
@@ -251,7 +252,7 @@ const Login = ({ onLogin }) => {
 
     const renderVerifyUsernameForm = () => (
         <form onSubmit={handleVerifyUsername} className="login-form">
-            <p className='login-info'>Enter your username to begin the password reset process.</p>
+            <p className='login-info'>Enter your **username** to find your account.</p>
             <input
                 type="text"
                 placeholder="Enter Username"
@@ -276,6 +277,7 @@ const Login = ({ onLogin }) => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
+                autoComplete="new-password"
             />
             <input
                 type="password"
@@ -284,6 +286,7 @@ const Login = ({ onLogin }) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                autoComplete="new-password"
             />
             <button type="submit" className="login-button" disabled={!newPassword || newPassword !== confirmPassword || !username.trim()}>
                 Reset Password
@@ -291,12 +294,14 @@ const Login = ({ onLogin }) => {
         </form>
     );
 
+    // --- RENDER MAIN CARD ---
+
     let title;
     let content;
 
     switch (currentView) {
         case VIEW_STATES.VERIFY_USERNAME:
-            title = 'Verify Username';
+            title = 'Forgot Password';
             content = renderVerifyUsernameForm();
             break;
         case VIEW_STATES.RESET_PASSWORD:
@@ -321,19 +326,21 @@ const Login = ({ onLogin }) => {
                 
                 {content}
                 
-                {/* Back to Login/Toggle Auth Button */}
-                {currentView === VIEW_STATES.AUTH && (
+                {/* Toggle Button / Back to Login Button */}
+                {currentView === VIEW_STATES.AUTH ? (
                     <button
                         onClick={handleToggleAuth}
                         className="toggle-auth-button"
                     >
                         {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
                     </button>
-                )}
-                 {currentView !== VIEW_STATES.AUTH && (
-                    <button
+                ) : (
+                     <button
                         onClick={() => {
-                            setUsername(''); // Clear username when going back
+                            // Only clear username if we're going from Reset back to Login
+                            if (currentView === VIEW_STATES.RESET_PASSWORD) {
+                                setUsername(''); 
+                            }
                             setCurrentView(VIEW_STATES.AUTH);
                         }}
                         className="toggle-auth-button"

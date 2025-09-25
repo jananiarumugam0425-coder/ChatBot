@@ -1,5 +1,5 @@
 import React from 'react';
-import './UploadButton.css'; // Make sure the path is correct
+import './UploadButton.css';
 
 const UploadButton = ({ onFileUpload, disabled }) => {
     const handleFileChange = (e) => {
@@ -11,11 +11,9 @@ const UploadButton = ({ onFileUpload, disabled }) => {
     };
 
     return (
-        // Note: The outer div is often used by ChatPage for flex alignment
         <div>
             <label 
                 htmlFor="file-upload" 
-                // CRITICAL: Use the pure CSS class to apply royal blue
                 className={`upload-label ${disabled ? 'disabled' : ''}`}
                 title="Upload Timesheet CSV"
             >
@@ -24,7 +22,7 @@ const UploadButton = ({ onFileUpload, disabled }) => {
             <input
                 type="file"
                 id="file-upload"
-                className="upload-input" // This class hides the default file input
+                className="upload-input" 
                 onChange={handleFileChange}
                 disabled={disabled}
                 accept=".csv"

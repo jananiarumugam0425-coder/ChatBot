@@ -1,4 +1,4 @@
-/* --- Login.css - Core Styling for the Card and Container (Ensures Dark Theme) --- */
+/* --- Login.css - Core Styling for the Card and Container --- */
 
 .login-container {
     display: flex;
@@ -7,134 +7,172 @@
     justify-content: center;
     min-height: 100vh;
     padding: 1rem;
-    background-color: #2e3549; /* Dark Blue/Gray Background */
+    
+    /* Animated Gradient Background */
+    background: linear-gradient(135deg, #1A1B29 0%, #292a40 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+
+    color: #E0E0E0; /* Soft text color */
 }
 
 .login-card {
     width: 100%;
     max-width: 24rem;
-    padding: 2rem;
-    background-color: #3f475d; /* Card Background */
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 2.5rem; 
+    background-color: #2E2F40; /* Card Background (Dark) */
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); 
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .login-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
     text-align: center;
     color: #ffffff;
+    letter-spacing: 1px;
+}
+
+.login-info {
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #A0A6B5; 
 }
 
 .login-form {
     display: flex;
     flex-direction: column;
-    /* FIX: Ensures consistent 1rem spacing between ALL elements in the form */
-    gap: 1rem; 
+    gap: 1.25rem; 
 }
 
-/* 🚀 *** CRITICAL FIX: High Specificity and Uniformity for ALL Inputs *** 🚀 */
+/* --- Input Field Styling (CRUCIAL FIX: Uniformity) --- */
 
-/* Target the class and use multiple selectors for maximum override power */
+/* Selects all fields using the class and specific types for robustness */
 .login-input, 
 .login-form input[type="text"],
 .login-form input[type="password"],
 .login-form input[type="email"],
 .login-form input[type="tel"] {
     width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
+    padding: 1rem; 
+    border-radius: 8px;
     
-    /* FIX: Force the correct background color and override browser defaults */
-    background-color: #4a5165 !important; 
+    /* ENFORCED STYLE: White Background for consistent look like image_1903e7.png */
+    background-color: #ffffff !important; 
     
-    color: #ffffff;
-    border: none;
+    color: #1A1B29; /* Dark text inside */
     
-    /* FIX: Crucial for width/sizing consistency across all input types */
-    box-sizing: border-box; 
-    
-    /* Reset browser appearance defaults */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none; 
+    /* Set a consistent border to fix alignment gaps */
+    border: 1px solid #ffffff; 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-sizing: border-box; /* Ensures padding doesn't affect total width */
 }
 
 .login-input::placeholder {
-    color: #a0a6b5;
+    color: #616161; 
+    transition: color 0.3s;
 }
 
 .login-input:focus {
-    /* Use high specificity for focus as well */
     outline: none;
-    box-shadow: 0 0 0 2px #4c52f5;
-}
-
-/* --- Error/Message Styling --- */
-
-.login-error {
-    color: #fca5a5;
-    font-size: 0.875rem;
-    text-align: center;
-}
-
-.login-success {
-    color: #84cc16; /* Light green for success messages */
-    font-size: 0.875rem;
-    text-align: center;
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.5); 
+    border-color: #1E88E5; 
+    transform: scale(1.02); 
 }
 
 /* --- Button Styling --- */
 
 .login-button {
     width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    background-color: #4c52f5;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #1E88E5; 
     color: #ffffff;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-}
-
-.login-button:hover {
-    background-color: #3a3fcf;
-}
-
-.toggle-auth-button {
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    text-align: center;
-    color: #8c92ff;
-    width: 100%;
-    background: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     border: none;
     cursor: pointer;
-    text-decoration: underline;
-    transition: color 0.3s ease;
+    box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
 }
 
-.toggle-auth-button:hover {
-    color: #5c62df;
+.login-button:hover:not(:disabled) {
+    background-color: #1565C0; 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 136, 229, 0.5);
 }
+
+.login-button:disabled {
+    background-color: #393A50;
+    color: #A0A6B5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* --- Utility Links --- */
 
 .forgot-password-button {
     background: none;
     border: none;
+    color: #A0A6B5;
+    text-align: right;
+    font-size: 0.9rem;
+    padding: 0 0 0.5rem 0;
     cursor: pointer;
-    text-align: right; 
-    width: 100%;
-    padding: 0;
-    
-    color: #a0a6b5; 
-    font-size: 0.85rem;
-    margin-top: -0.5rem; 
-    margin-bottom: 0.5rem; 
-    
-    transition: color 0.2s;
+    transition: color 0.3s, transform 0.2s;
 }
 
 .forgot-password-button:hover {
-    color: #4c52f5; 
-    text-decoration: underline;
+    color: #1E88E5; 
+    transform: translateY(-2px);
+}
+
+.toggle-auth-button {
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    text-align: center;
+    color: #A0A6B5;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none; 
+    transition: color 0.3s, transform 0.2s;
+}
+
+.toggle-auth-button:hover {
+    color: #00C853; 
+    transform: translateY(-2px);
+}
+
+/* --- Messages and Animations --- */
+
+.login-error {
+    color: #EF5350; 
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.login-success {
+    color: #00C853; 
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

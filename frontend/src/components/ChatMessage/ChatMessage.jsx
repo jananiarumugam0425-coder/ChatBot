@@ -1,13 +1,19 @@
 import React from 'react';
-import './ChatMessage.css'; // Make sure this CSS file is used
+import './ChatMessage.css';
 
 const ChatMessage = ({ sender, text }) => {
-    // Uses the custom CSS classes defined in ChatMessage.css
+    // This class determines alignment and styling based on the sender
     const messageClass = sender === 'user' ? 'user-message' : 'bot-message';
     
+    // The message content is rendered directly, so it can be a string or contain HTML like a list
+    const messageContent = { __html: text };
+
     return (
         <div className={`message ${messageClass}`}>
-            <p>{text}</p>
+            <div 
+                className="message-bubble" 
+                dangerouslySetInnerHTML={messageContent}
+            ></div>
         </div>
     );
 };

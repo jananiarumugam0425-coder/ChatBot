@@ -1,36 +1,53 @@
+/* ChatMessage.css (Corrected for Alignment and Elegant Styling) */
+
 .message {
-  display: flex;
+    display: flex;
+    width: 100%;
+    margin-bottom: 12px; /* Vertical spacing between messages */
 }
 
-.message p {
-  padding: 12px 18px;
-  border-radius: 20px; 
-  line-height: 1.4;
-  max-width: 80%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
-  margin: 0;
+.message-bubble {
+    padding: 12px 18px;
+    line-height: 1.4;
+    max-width: 75%; /* Limit width to prevent messages from spanning the entire screen */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); 
+    margin: 0;
+    border-radius: 18px; /* Default roundness for all corners */
+    
+    /* Ensures line breaks and spaces from the data are respected */
+    white-space: pre-wrap;
 }
 
-/* USER Message Styles */
+/* Styles for ordered lists inside the bubble (ol) */
+.message-bubble ol {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+
+.message-bubble li {
+    margin-bottom: 4px;
+}
+
+/* USER Message Styles: Aligns to the right */
 .user-message {
-  justify-content: flex-end;
-  margin-left: auto;
+    justify-content: flex-end; /* FIX: Pushes the bubble to the right */
 }
 
-.user-message p {
-  background-color: #4c52f5; /* Primary Blue for user */
-  color: white;
-  border-top-right-radius: 8px;
+.user-message .message-bubble {
+    background-color: #6495ED; /* Primary Accent (Cornflower Blue) */
+    color: white;
+    /* Adjust corner for a 'tail' effect */
+    border-bottom-right-radius: 4px; 
 }
 
-/* BOT Message Styles */
+/* BOT Message Styles: Aligns to the left */
 .bot-message {
-  justify-content: flex-start;
-  margin-right: auto;
+    justify-content: flex-start;
 }
 
-.bot-message p {
-  background-color: #4a5165; /* Dark gray for bot */
-  color: #d1d5db; /* Light gray text */
-  border-top-left-radius: 8px;
+.bot-message .message-bubble {
+    background-color: #393D45; /* Bot Bubble Color */
+    color: #E0E0E0; /* Soft white text */
+    /* Adjust corner for a 'tail' effect */
+    border-bottom-left-radius: 4px;
 }
