@@ -14,7 +14,7 @@ MONGO_URI = "mongodb://localhost:27017/"
 MONGO_DATABASE_NAME = "data_analysis_app_db" 
 
 # Placeholder for OpenRouter key (replace with actual key or env var)
-OPENROUTER_API_KEY = "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" 
+OPENROUTER_API_KEY = "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" 
 
 client_openai = OpenAI(
     base_url="https://openrouter.ai/api/v1", 

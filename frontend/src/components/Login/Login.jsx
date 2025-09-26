@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Login.css';
+import AuthForms from './AuthForms'; // Import the new rendering component
 
 // Set the base URL for the Flask backend
 const API_BASE_URL = 'http://127.0.0.1:5000'; 
@@ -18,7 +19,7 @@ const Login = ({ onLogin }) => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState(''); 
-    const [country, setCountry] = useState('');    
+    const [country, setCountry] = useState(''); 
     
     // --- UI & RESET STATE ---
     const [isSignUp, setIsSignUp] = useState(false);
@@ -36,18 +37,11 @@ const Login = ({ onLogin }) => {
             setPassword('');
             setNewPassword('');
             setConfirmPassword('');
-            // Only clear username if we're switching between login/signup mode
-            if (isSignUp) { 
-                setFullName('');
-                setEmail('');
-                setPhoneNumber(''); 
-                setCountry(''); 
-            } else {
-                 setFullName('');
-                 setEmail('');
-                 setPhoneNumber(''); 
-                 setCountry(''); 
-            }
+            // Clear all sign-up specific fields regardless of whether we are switching modes or coming from a non-auth view.
+            setFullName('');
+            setEmail('');
+            setPhoneNumber(''); 
+            setCountry(''); 
         }
         
         // Always clear messages when the view or mode changes
@@ -64,8 +58,8 @@ const Login = ({ onLogin }) => {
     }
 
     /* -------------------------------------------
-       --- AUTHENTICATION LOGIC (Login / Sign Up)---
-       ------------------------------------------- */
+        --- AUTHENTICATION LOGIC (Login / Sign Up)---
+        ------------------------------------------- */
 
     const handleAuth = async (e) => {
         e.preventDefault();
@@ -118,8 +112,8 @@ const Login = ({ onLogin }) => {
     }
 
     /* -------------------------------------------
-       --- PASSWORD RESET LOGIC ---
-       ------------------------------------------- */
+        --- PASSWORD RESET LOGIC ---
+        ------------------------------------------- */
 
     // Step 1: Verify Username
     const handleVerifyUsername = async (e) => {
@@ -204,150 +198,37 @@ const Login = ({ onLogin }) => {
         }
     };
 
+    // Consolidated props object to pass to the AuthForms component
+    const formProps = {
+        // State
+        username, setUsername, 
+        password, setPassword,
+        fullName, setFullName, 
+        email, setEmail, 
+        phoneNumber, setPhoneNumber, 
+        country, setCountry, 
+        isSignUp, 
+        newPassword, setNewPassword,
+        confirmPassword, setConfirmPassword,
+        currentView, setCurrentView,
+        VIEW_STATES,
 
-    /* -------------------------------------------
-       --- RENDER FUNCTIONS ---
-       ------------------------------------------- */
+        // Handlers
+        handleAuth, 
+        handleVerifyUsername, 
+        handleResetPassword,
+        handleToggleAuth,
 
-    const renderAuthForm = () => (
-        <form onSubmit={handleAuth} className="login-form" autoComplete="off">
-            
-            {/* Sign Up Specific Fields */}
-            {isSignUp && (
-                <>
-                    <input type="text" placeholder="Full Name" className="login-input" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
-                    <input type="email" placeholder="Email" className="login-input" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-                    <input type="tel" placeholder="Phone Number" className="login-input" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required autoComplete="tel" />
-                    <input type="text" placeholder="Country" className="login-input" value={country} onChange={(e) => setCountry(e.target.value)} required autoComplete="country-name" />
-                </>
-            )}
-
-            {/* Common Fields */}
-            <input type="text" placeholder="Username" className="login-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" />
-            <input type="password" placeholder="Password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={isSignUp ? "new-password" : "current-password"} />
-            
-            {/* Forgot Password Link (Only on Login View) */}
-            {!isSignUp && (
-                 <button 
-                    type="button" 
-                    onClick={() => {
-                        setPassword(''); 
-                        setCurrentView(VIEW_STATES.VERIFY_USERNAME);
-                    }} 
-                    className="forgot-password-button"
-                 >
-                    Forgot Password?
-                 </button>
-            )}
-            
-            <button 
-                type="submit" 
-                className="login-button"
-            >
-                {isSignUp ? 'Sign Up' : 'Log In'}
-            </button>
-            
-        </form>
-    );
-
-    const renderVerifyUsernameForm = () => (
-        <form onSubmit={handleVerifyUsername} className="login-form">
-            <p className='login-info'>Enter your **username** to find your account.</p>
-            <input
-                type="text"
-                placeholder="Enter Username"
-                className="login-input"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-            />
-            <button type="submit" className="login-button">
-                Verify Username
-            </button>
-        </form>
-    );
-
-    const renderResetPasswordForm = () => (
-        <form onSubmit={handleResetPassword} className="login-form">
-            <p className='login-info'>Set a new password for user: **{username}**</p>
-            <input
-                type="password"
-                placeholder="New Password (min 6 chars)"
-                className="login-input"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-            />
-            <input
-                type="password"
-                placeholder="Confirm New Password"
-                className="login-input"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-            />
-            <button type="submit" className="login-button" disabled={!newPassword || newPassword !== confirmPassword || !username.trim()}>
-                Reset Password
-            </button>
-        </form>
-    );
-
-    // --- RENDER MAIN CARD ---
-
-    let title;
-    let content;
-
-    switch (currentView) {
-        case VIEW_STATES.VERIFY_USERNAME:
-            title = 'Forgot Password';
-            content = renderVerifyUsernameForm();
-            break;
-        case VIEW_STATES.RESET_PASSWORD:
-            title = 'Set New Password';
-            content = renderResetPasswordForm();
-            break;
-        case VIEW_STATES.AUTH:
-        default:
-            title = isSignUp ? 'Sign Up' : 'Log In';
-            content = renderAuthForm();
-            break;
-    }
+        // UI Helpers
+        title: isSignUp ? 'Sign Up' : 'Log In',
+        error, message, getMessageClass
+    };
 
 
     return (
         <div className="login-container">
             <div className="login-card">
-                <h2 className="login-title">{title}</h2>
-                
-                {/* Message/Error Display */}
-                {(message || error) && <div className={getMessageClass()}>{message || error}</div>}
-                
-                {content}
-                
-                {/* Toggle Button / Back to Login Button */}
-                {currentView === VIEW_STATES.AUTH ? (
-                    <button
-                        onClick={handleToggleAuth}
-                        className="toggle-auth-button"
-                    >
-                        {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
-                    </button>
-                ) : (
-                     <button
-                        onClick={() => {
-                            // Only clear username if we're going from Reset back to Login
-                            if (currentView === VIEW_STATES.RESET_PASSWORD) {
-                                setUsername(''); 
-                            }
-                            setCurrentView(VIEW_STATES.AUTH);
-                        }}
-                        className="toggle-auth-button"
-                    >
-                        &larr; Back to Log In
-                    </button>
-                )}
+                <AuthForms {...formProps} />
             </div>
         </div>
     );
