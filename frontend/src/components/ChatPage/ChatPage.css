@@ -5,7 +5,9 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #121212; /* Very dark background */
+    background: #020024;
+    background: linear-gradient(90deg,rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+
     padding: 20px;
     font-family: Arial, sans-serif;
     color: #e0e0e0; /* Default light text color */
