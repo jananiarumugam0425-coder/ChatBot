@@ -76,7 +76,7 @@
 /* --- Individual Message Styles --- */
 
 .message {
-    max-width: 80%;
+    max-width: fit-content;
     padding: 12px 18px;
     border-radius: 18px;
     line-height: 1.5;

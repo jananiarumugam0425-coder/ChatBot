@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 MONGO_URI = "mongodb://localhost:27017/" 
 
 # CRITICAL: Replace with your actual OpenRouter key
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "YOUR_API_Key"
 
 # Create a single OpenAI client instance
 client_openai = OpenAI(

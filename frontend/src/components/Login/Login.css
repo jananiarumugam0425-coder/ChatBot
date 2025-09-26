@@ -61,9 +61,9 @@
     border-radius: 8px;
     
     /* ENFORCED STYLE: White Background for consistent look like image_1903e7.png */
-    background-color: #ffffff !important; 
+    background-color: rgb(58, 56, 56) !important; 
     
-    color: #1A1B29; /* Dark text inside */
+    color: white; /* Dark text inside */
     
     /* Set a consistent border to fix alignment gaps */
     border: 1px solid #ffffff; 
