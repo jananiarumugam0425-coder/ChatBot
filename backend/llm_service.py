@@ -5,6 +5,7 @@ import os
 import logging
 from bcrypt import hashpw, gensalt, checkpw 
 from uuid import uuid4
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 
@@ -14,7 +15,7 @@ MONGO_URI = "mongodb://localhost:27017/"
 MONGO_DATABASE_NAME = "data_analysis_app_db" 
 
 # Placeholder for OpenRouter key (replace with actual key or env var)
-OPENROUTER_API_KEY = "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" 
+OPENROUTER_API_KEY = "YOUR_API_Key" 
 
 client_openai = OpenAI(
     base_url="https://openrouter.ai/api/v1", 
@@ -33,6 +34,14 @@ def get_users_collection(client):
     # CRITICAL: Ensures unique index on username for quick checks
     db['users'].create_index([('username', pymongo.ASCENDING)], unique=True)
     return db['users']
+
+def get_chats_collection(client):
+    """Helper to get the 'chat_sessions' collection."""
+    db = client[MONGO_DATABASE_NAME]
+    # Create indexes for better performance
+    db['chat_sessions'].create_index([('username', pymongo.ASCENDING)])
+    db['chat_sessions'].create_index([('chat_id', pymongo.ASCENDING)], unique=True)
+    return db['chat_sessions']
 
 # --- MONGODB AUTHENTICATION FUNCTIONS ---
 
@@ -184,7 +193,148 @@ def update_password(username, new_password):
         if temp_client:
             temp_client.close()
 
-# --- TIMESHEET DATA FUNCTIONS (Unchanged, but included for completeness) ---
+# --- CHAT HISTORY FUNCTIONS ---
+
+def create_chat_session(username, session_name=None):
+    """Creates a new chat session and returns the chat_id"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        chat_id = str(uuid4())
+        session_name = session_name or f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        
+        chat_session = {
+            'chat_id': chat_id,
+            'username': username,
+            'session_name': session_name,
+            'created_at': datetime.now(),
+            'updated_at': datetime.now(),
+            'messages': []
+        }
+        
+        chats_collection.insert_one(chat_session)
+        logging.info(f"Created new chat session {chat_id} for user {username}")
+        return chat_id
+        
+    except Exception as e:
+        logging.error(f"Error creating chat session: {e}")
+        return None
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def add_message_to_chat(chat_id, sender, text):
+    """Adds a message to an existing chat session"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        message = {
+            'message_id': str(uuid4()),
+            'sender': sender,
+            'text': text,
+            'timestamp': datetime.now()
+        }
+        
+        chats_collection.update_one(
+            {'chat_id': chat_id},
+            {
+                '$push': {'messages': message},
+                '$set': {'updated_at': datetime.now()}
+            }
+        )
+        return True
+        
+    except Exception as e:
+        logging.error(f"Error adding message to chat: {e}")
+        return False
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def get_user_chat_sessions(username):
+    """Gets all chat sessions for a user"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        sessions = list(chats_collection.find(
+            {'username': username},
+            {'messages': 0}  # Exclude messages for listing
+        ).sort('updated_at', -1))
+        
+        # Convert ObjectId to string and format dates for JSON serialization
+        for session in sessions:
+            session['_id'] = str(session['_id'])
+            session['created_at'] = session['created_at'].isoformat()
+            session['updated_at'] = session['updated_at'].isoformat()
+            
+        return sessions
+        
+    except Exception as e:
+        logging.error(f"Error getting user chat sessions: {e}")
+        return []
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def get_chat_messages(chat_id, username):
+    """Gets all messages for a specific chat session"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        chat = chats_collection.find_one({
+            'chat_id': chat_id,
+            'username': username  # Security: user can only access their own chats
+        })
+        
+        if chat:
+            # Format messages for frontend
+            messages = []
+            for msg in chat.get('messages', []):
+                messages.append({
+                    'sender': msg['sender'],
+                    'text': msg['text'],
+                    'timestamp': msg['timestamp'].isoformat()
+                })
+            return messages
+        return []
+        
+    except Exception as e:
+        logging.error(f"Error getting chat messages: {e}")
+        return []
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def delete_chat_session(chat_id, username):
+    """Deletes a chat session"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        result = chats_collection.delete_one({
+            'chat_id': chat_id,
+            'username': username
+        })
+        
+        return result.deleted_count > 0
+        
+    except Exception as e:
+        logging.error(f"Error deleting chat session: {e}")
+        return False
+    finally:
+        if temp_client:
+            temp_client.close()
+
+# --- TIMESHEET DATA FUNCTIONS ---
 
 def summarize_timesheet_data(df):
     if df.empty:
@@ -236,7 +386,7 @@ def get_timesheet_data_from_db():
         if temp_client:
             temp_client.close()
 
-# --- LLM FUNCTION (Unchanged) ---
+# --- LLM FUNCTION ---
 
 def get_llm_response(user_query):
     try:

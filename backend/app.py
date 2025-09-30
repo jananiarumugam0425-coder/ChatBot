@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from uuid import uuid4 # <-- FIX: Changed from 'import uuid' to be specific
+from uuid import uuid4
 
 # CRITICAL: Import all necessary functions from the service file
 try:
@@ -18,7 +18,13 @@ try:
         verify_user,
         get_user_by_token,
         get_user_data_by_username,
-        update_password
+        update_password,
+        # Chat History Functions
+        create_chat_session,
+        add_message_to_chat,
+        get_user_chat_sessions,
+        get_chat_messages,
+        delete_chat_session
     )
 except ImportError as e:
     logging.error(f"FATAL: Failed to import llm_service.py or its functions. Error: {e}")
@@ -32,6 +38,12 @@ except ImportError as e:
     def get_user_by_token(*args, **kwargs): return None
     def get_user_data_by_username(*args, **kwargs): return None
     def update_password(*args, **kwargs): return False
+    # Define placeholder chat functions
+    def create_chat_session(*args, **kwargs): return None
+    def add_message_to_chat(*args, **kwargs): return False
+    def get_user_chat_sessions(*args, **kwargs): return []
+    def get_chat_messages(*args, **kwargs): return []
+    def delete_chat_session(*args, **kwargs): return False
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,9 +55,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
-
-# Global chat history remains in memory for the duration of the server process
-chat_history = {} 
 
 # --- AUTHENTICATION ROUTES (MIGRATED TO MONGODB) ---
 
@@ -158,6 +167,84 @@ def authenticate_request():
     
     return username, None, None # Success returns username and two None error placeholders
 
+# -------------------------------------------------------------
+# --- CHAT HISTORY ROUTES (PERSISTENT STORAGE) ---
+# -------------------------------------------------------------
+
+@app.route('/chat/sessions', methods=['GET'])
+def get_chat_sessions():
+    """Get all chat sessions for the authenticated user"""
+    username, error_response, status_code = authenticate_request()
+    if error_response:
+        return error_response, status_code
+    
+    try:
+        sessions = get_user_chat_sessions(username)
+        return jsonify({"sessions": sessions}), 200
+    except Exception as e:
+        logging.error(f"Error fetching chat sessions: {e}")
+        return jsonify({"error": f"Error fetching chat sessions: {str(e)}"}), 500
+
+@app.route('/chat/sessions', methods=['POST'])
+def create_new_chat_session():
+    """Create a new chat session for the authenticated user"""
+    username, error_response, status_code = authenticate_request()
+    if error_response:
+        return error_response, status_code
+    
+    try:
+        session_name = request.json.get('session_name')
+        chat_id = create_chat_session(username, session_name)
+        
+        if chat_id:
+            return jsonify({
+                "chat_id": chat_id,
+                "message": "Chat session created successfully"
+            }), 201
+        else:
+            return jsonify({"error": "Failed to create chat session"}), 500
+            
+    except Exception as e:
+        logging.error(f"Error creating chat session: {e}")
+        return jsonify({"error": f"Error creating chat session: {str(e)}"}), 500
+
+@app.route('/chat/sessions/<chat_id>', methods=['GET'])
+def get_chat_session(chat_id):
+    """Get all messages for a specific chat session"""
+    username, error_response, status_code = authenticate_request()
+    if error_response:
+        return error_response, status_code
+    
+    try:
+        messages = get_chat_messages(chat_id, username)
+        return jsonify({"messages": messages}), 200
+    except Exception as e:
+        logging.error(f"Error fetching chat messages: {e}")
+        return jsonify({"error": f"Error fetching chat messages: {str(e)}"}), 500
+
+@app.route('/chat/sessions/<chat_id>', methods=['DELETE'])
+def delete_chat_session_route(chat_id):
+    """Delete a specific chat session"""
+    username, error_response, status_code = authenticate_request()
+    if error_response:
+        return error_response, status_code
+    
+    try:
+        success = delete_chat_session(chat_id, username)
+        
+        if success:
+            return jsonify({"message": "Chat session deleted successfully"}), 200
+        else:
+            return jsonify({"error": "Chat session not found or access denied"}), 404
+            
+    except Exception as e:
+        logging.error(f"Error deleting chat session: {e}")
+        return jsonify({"error": f"Error deleting chat session: {str(e)}"}), 500
+
+# -------------------------------------------------------------
+# --- MAIN CHAT AND UPLOAD ROUTES ---
+# -------------------------------------------------------------
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     username, error_response, status_code = authenticate_request()
@@ -192,42 +279,38 @@ def upload_file():
 
     return jsonify({"error": "File upload failed due to unknown error."}), 500
 
-
 @app.route('/chat', methods=['POST'])
 def chat():
+    """Main chat endpoint with persistent chat history"""
     username, error_response, status_code = authenticate_request()
     if error_response:
         return error_response, status_code
     
     data = request.json
     user_query = data.get('query')
+    chat_id = data.get('chat_id')  # Required: specify which chat session
     
     if not user_query:
         return jsonify({"error": "Query is required."}), 400
+    if not chat_id:
+        return jsonify({"error": "Chat ID is required."}), 400
 
     try:
+        # Get LLM response
         llm_answer = get_llm_response(user_query)
         
-        chat_history.setdefault(username, []).append({'sender': 'user', 'text': user_query})
-        chat_history.setdefault(username, []).append({'sender': 'bot', 'text': llm_answer})
+        # Store both messages in the database
+        add_message_to_chat(chat_id, 'user', user_query)
+        add_message_to_chat(chat_id, 'bot', llm_answer)
         
         return jsonify({"answer": llm_answer}), 200
     except Exception as e:
+        logging.error(f"An internal server error occurred during chat: {e}")
         return jsonify({"error": f"An internal server error occurred during chat: {str(e)}"}), 500
-
-
-@app.route('/chat_history', methods=['GET'])
-def get_chat_history():
-    username, error_response, status_code = authenticate_request()
-    if error_response:
-        return error_response, status_code
-    
-    history = chat_history.get(username, [])
-    return jsonify({"history": history}), 200
-
 
 @app.route('/signout', methods=['POST'])
 def signout():
+    """Sign out and invalidate session token"""
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({"message": "Signout successful."}), 200 # Treat as successful if no token provided
@@ -243,6 +326,14 @@ def signout():
         
     return jsonify({"message": "Signout successful."}), 200
 
+# -------------------------------------------------------------
+# --- HEALTH CHECK ROUTE ---
+# -------------------------------------------------------------
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
