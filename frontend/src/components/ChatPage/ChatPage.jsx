@@ -39,7 +39,7 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
             if (chatExists) {
                 loadChatSession(urlChatId);
             } else {
-                setError("Chat session not found.");
+                setError("");
                 navigate('/chat', { replace: true });
             }
         }

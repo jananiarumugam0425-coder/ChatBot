@@ -15,7 +15,7 @@ MONGO_URI = "mongodb://localhost:27017/"
 MONGO_DATABASE_NAME = "data_analysis_app_db" 
 
 # Placeholder for OpenRouter key (replace with actual key or env var)
-OPENROUTER_API_KEY = "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" 
+OPENROUTER_API_KEY = "YOUR_API_Key" 
 
 client_openai = OpenAI(
     base_url="https://openrouter.ai/api/v1", 
@@ -304,11 +304,46 @@ def get_chat_messages(chat_id, username):
                     'timestamp': msg['timestamp'].isoformat()
                 })
             return messages
-        return []
+        return None  # Return None instead of empty list for non-existent sessions
         
     except Exception as e:
         logging.error(f"Error getting chat messages: {e}")
-        return []
+        return None
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def validate_chat_session(chat_id, username):
+    """Validates if a chat session exists and belongs to the user"""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        chats_collection = get_chats_collection(temp_client)
+        
+        chat = chats_collection.find_one({
+            'chat_id': chat_id,
+            'username': username
+        })
+        
+        if chat:
+            return {
+                'valid': True,
+                'chat_id': chat_id,
+                'session_name': chat.get('session_name', 'Unknown Session'),
+                'username': username
+            }
+        else:
+            return {
+                'valid': False,
+                'error': 'Chat session not found or access denied'
+            }
+            
+    except Exception as e:
+        logging.error(f"Error validating chat session: {e}")
+        return {
+            'valid': False,
+            'error': f'Error validating chat session: {str(e)}'
+        }
     finally:
         if temp_client:
             temp_client.close()

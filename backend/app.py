@@ -24,7 +24,9 @@ try:
         add_message_to_chat,
         get_user_chat_sessions,
         get_chat_messages,
-        delete_chat_session
+        delete_chat_session,
+        # MongoDB client function
+        get_mongo_client
     )
 except ImportError as e:
     logging.error(f"FATAL: Failed to import llm_service.py or its functions. Error: {e}")
@@ -44,6 +46,7 @@ except ImportError as e:
     def get_user_chat_sessions(*args, **kwargs): return []
     def get_chat_messages(*args, **kwargs): return []
     def delete_chat_session(*args, **kwargs): return False
+    def get_mongo_client(*args, **kwargs): return None
 
 logging.basicConfig(level=logging.INFO)
 
@@ -193,12 +196,14 @@ def create_new_chat_session():
         return error_response, status_code
     
     try:
-        session_name = request.json.get('session_name')
+        session_name = request.json.get('session_name', f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         chat_id = create_chat_session(username, session_name)
         
         if chat_id:
             return jsonify({
                 "chat_id": chat_id,
+                "session_name": session_name,
+                "created_at": datetime.now().isoformat(),
                 "message": "Chat session created successfully"
             }), 201
         else:
@@ -217,10 +222,49 @@ def get_chat_session(chat_id):
     
     try:
         messages = get_chat_messages(chat_id, username)
+        if messages is None:  # Session doesn't exist
+            return jsonify({"error": "Chat session not found"}), 404
         return jsonify({"messages": messages}), 200
     except Exception as e:
         logging.error(f"Error fetching chat messages: {e}")
         return jsonify({"error": f"Error fetching chat messages: {str(e)}"}), 500
+
+@app.route('/chat/sessions/<chat_id>/validate', methods=['GET'])
+def validate_chat_session(chat_id):
+    """Validate if a chat session exists and belongs to the user"""
+    username, error_response, status_code = authenticate_request()
+    if error_response:
+        return error_response, status_code
+    
+    try:
+        temp_client = get_mongo_client()
+        db = temp_client["data_analysis_app_db"]
+        chats_collection = db['chat_sessions']
+        
+        chat = chats_collection.find_one({
+            'chat_id': chat_id,
+            'username': username
+        })
+        
+        if chat:
+            return jsonify({
+                "valid": True,
+                "chat_id": chat_id,
+                "session_name": chat.get('session_name', 'Unknown Session'),
+                "username": username
+            }), 200
+        else:
+            return jsonify({
+                "valid": False,
+                "error": "Chat session not found or access denied"
+            }), 404
+            
+    except Exception as e:
+        logging.error(f"Error validating chat session: {e}")
+        return jsonify({"error": f"Error validating chat session: {str(e)}"}), 500
+    finally:
+        if 'temp_client' in locals():
+            temp_client.close()
 
 @app.route('/chat/sessions/<chat_id>', methods=['DELETE'])
 def delete_chat_session_route(chat_id):
@@ -296,6 +340,19 @@ def chat():
         return jsonify({"error": "Chat ID is required."}), 400
 
     try:
+        # First validate the chat session exists
+        temp_client = get_mongo_client()
+        db = temp_client["data_analysis_app_db"]
+        chats_collection = db['chat_sessions']
+        
+        chat = chats_collection.find_one({
+            'chat_id': chat_id,
+            'username': username
+        })
+        
+        if not chat:
+            return jsonify({"error": "Chat session not found"}), 404
+            
         # Get LLM response
         llm_answer = get_llm_response(user_query)
         
@@ -307,6 +364,9 @@ def chat():
     except Exception as e:
         logging.error(f"An internal server error occurred during chat: {e}")
         return jsonify({"error": f"An internal server error occurred during chat: {str(e)}"}), 500
+    finally:
+        if 'temp_client' in locals():
+            temp_client.close()
 
 @app.route('/signout', methods=['POST'])
 def signout():
