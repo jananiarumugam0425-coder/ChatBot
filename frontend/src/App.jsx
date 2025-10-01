@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login/Login.jsx';      
+import Signup from './components/Signup/Signup.jsx';
+import ForgotPassword from './components/ForgotPassword/ForgotPassword.jsx';
 import ChatPage from './components/ChatPage/ChatPage.jsx';  
 
 // --- ROUTE PROTECTION COMPONENT ---
@@ -38,7 +40,7 @@ const App = () => {
                     } 
                 />
 
-                {/* 2. LOGIN ROUTE: Unprotected */}
+                {/* 2. LOGIN ROUTE */}
                 <Route
                     path="/login"
                     element={
@@ -46,10 +48,23 @@ const App = () => {
                     }
                 />
                 
-                {/* 3. SIGNUP ROUTE: Redirects to /login */}
-                <Route path="/signup" element={<Navigate to="/login" replace />} />
+                {/* 3. SIGNUP ROUTE */}
+                <Route
+                    path="/signup"
+                    element={
+                        sessionToken ? <Navigate to="/chat" replace /> : <Signup onLogin={handleLogin} />
+                    }
+                />
 
-                {/* 4. MAIN CHAT ROUTE: Shows chat sessions list */}
+                {/* 4. FORGOT PASSWORD ROUTE */}
+                <Route
+                    path="/forgot-password"
+                    element={
+                        sessionToken ? <Navigate to="/chat" replace /> : <ForgotPassword />
+                    }
+                />
+
+                {/* 5. MAIN CHAT ROUTE: Shows chat sessions list */}
                 <Route
                     path="/chat"
                     element={
@@ -63,7 +78,7 @@ const App = () => {
                     }
                 />
 
-                {/* 5. INDIVIDUAL CHAT SESSION ROUTES */}
+                {/* 6. INDIVIDUAL CHAT SESSION ROUTES */}
                 <Route
                     path="/chat/:chatId"
                     element={

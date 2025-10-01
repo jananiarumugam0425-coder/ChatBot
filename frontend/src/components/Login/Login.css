@@ -1,179 +1,242 @@
-/* --- Login.css - Core Styling for the Card and Container --- */
-
-.login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+/* Common styles for all auth pages */
+.login-container, .signup-container, .forgot-password-container {
     min-height: 100vh;
-    padding: 1rem;
-    
-    /* Animated Gradient Background */
-    background: #020024;
-background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
-
-    color: #E0E0E0; /* Soft text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
 }
 
-.login-card {
+.login-card, .signup-card, .forgot-password-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 24rem;
-    padding: 2.5rem; 
-    background-color: #2E2F40; /* Card Background (Dark) */
-    border-radius: 12px;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); 
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: 400px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.login-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
+.login-card:hover, .signup-card:hover, .forgot-password-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.login-title, .signup-title, .forgot-password-title {
     text-align: center;
-    color: #ffffff;
-    letter-spacing: 1px;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
 }
 
-.login-info {
-    font-size: 0.95rem;
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #A0A6B5; 
-}
-
-.login-form {
+/* Form styles */
+.login-form, .signup-form, .forgot-password-form {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem; 
+    gap: 20px;
 }
 
-/* --- Input Field Styling (CRUCIAL FIX: Uniformity) --- */
+.form-row {
+    position: relative;
+}
 
-/* Selects all fields using the class and specific types for robustness */
-.login-input, 
-.login-form input[type="text"],
-.login-form input[type="password"],
-.login-form input[type="email"],
-.login-form input[type="tel"] {
+.login-input, .signup-input, .forgot-password-input {
     width: 100%;
-    padding: 1rem; 
+    padding: 15px;
+    border: 2px solid #e1e5e9;
     border-radius: 8px;
-    
-    /* ENFORCED STYLE: White Background for consistent look like image_1903e7.png */
-    background-color: rgb(58, 56, 56) !important; 
-    
-    color: white; /* Dark text inside */
-    
-    /* Set a consistent border to fix alignment gaps */
-    border: 1px solid black; 
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-sizing: border-box; /* Ensures padding doesn't affect total width */
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    box-sizing: border-box;
+    color: #333;
 }
 
-.login-input::placeholder {
-    color: #616161; 
-    transition: color 0.3s;
+.login-input::placeholder, .signup-input::placeholder, .forgot-password-input::placeholder {
+    color: #999;
 }
 
-.login-input:focus {
-     outline: none;
-    
-    /* Use compound box-shadow to create both the solid blue border and the glow */
-     box-shadow: 
-        0 0 0 1px #1E88E5, /* 1px solid blue ring */
-        0 0 0 4px rgba(30, 136, 229, 0.3); /* 3px transparent blue glow *//* The transform: scale(1.02); property is intentionally removed */
+/* Hover effects */
+.login-input:hover, .signup-input:hover, .forgot-password-input:hover {
+    border-color: #667eea;
+    background-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
 }
 
-/* --- Button Styling --- */
+/* Focus animations */
+.login-input:focus, .signup-input:focus, .forgot-password-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: #ffffff;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    animation: inputFocus 0.4s ease;
+}
 
-.login-button {
-    width: 100%;
-    padding: 1rem;
+/* Input focus animation */
+@keyframes inputFocus {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(102, 126, 234, 0);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+    100% {
+        transform: scale(1.02) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    }
+}
+
+/* Button styles */
+.login-button, .signup-button, .forgot-password-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border: none;
     border-radius: 8px;
-    background-color: #1E88E5; 
-    color: #ffffff;
+    font-size: 16px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: none;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 10px;
 }
 
-.login-button:hover:not(:disabled) {
-    background-color: #1565C0; 
+.login-button:hover, .signup-button:hover, .forgot-password-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(30, 136, 229, 0.5);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
 
-.login-button:disabled {
-    background-color: #393A50;
-    color: #A0A6B5;
+.login-button:active, .signup-button:active, .forgot-password-button:active {
+    transform: translateY(0);
+}
+
+.login-button:disabled, .signup-button:disabled, .forgot-password-button:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
-    box-shadow: none;
+    transform: none;
 }
 
-/* --- Utility Links --- */
-
-.forgot-password-button {
-    background: none;
-    border: none;
-    color: #A0A6B5;
+/* Link styles */
+.forgot-password-link {
     text-align: right;
-    font-size: 0.9rem;
-    padding: 0 0 0.5rem 0;
-    cursor: pointer;
-    transition: color 0.3s, transform 0.2s;
+    margin-top: -10px;
 }
 
-.forgot-password-button:hover {
-    color: #1E88E5; 
-    transform: translateY(-2px);
+.forgot-password-link .auth-link {
+    color: #667eea;
+    font-size: 14px;
 }
 
-.toggle-auth-button {
-    margin-top: 1.5rem;
-    font-size: 0.95rem;
+.login-links, .signup-links, .forgot-password-links {
     text-align: center;
-    color: #A0A6B5;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+}
+
+/* FIX: Make the text visible with dark color */
+.login-links p, .signup-links p, .forgot-password-links p {
+    color: grey !important; /* Dark gray color for visibility */
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.auth-link {
+    color: #667eea !important;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-left: 5px;
+}
+
+.auth-link:hover {
+    color: #764ba2 !important;
+    transform: translateY(-1px);
+}
+
+.auth-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+.auth-link:hover::after {
     width: 100%;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: none; 
-    transition: color 0.3s, transform 0.2s;
 }
 
-.toggle-auth-button:hover {
-    color: #00C853; 
-    transform: translateY(-2px);
+/* Message styles */
+.login-success, .signup-success, .forgot-password-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+    animation: slideDown 0.3s ease;
 }
 
-/* --- Messages and Animations --- */
-
-.login-error {
-    color: #EF5350; 
-    font-size: 0.9rem;
-    text-align: center;
-    margin-top: 0.5rem;
-    animation: fadeIn 0.5s ease-in-out;
+.login-error, .signup-error, .forgot-password-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    animation: slideDown 0.3s ease;
 }
 
-.login-success {
-    color: #00C853; 
-    font-size: 0.9rem;
-    text-align: center;
-    margin-top: 0.5rem;
-    animation: fadeIn 0.5s ease-in-out;
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* Loading animation */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.login-button:disabled, .signup-button:disabled, .forgot-password-button:disabled {
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .login-card, .signup-card, .forgot-password-card {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+    
+    .login-title, .signup-title, .forgot-password-title {
+        font-size: 24px;
+    }
+    
+    .login-links p, .signup-links p, .forgot-password-links p {
+        font-size: 14px;
+    }
 }
