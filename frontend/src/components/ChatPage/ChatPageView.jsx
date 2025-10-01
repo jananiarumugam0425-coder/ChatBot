@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import ChatMessage from '../ChatMessage/ChatMessage';
 import UploadButton from '../UploadButton/UploadButton';
 
@@ -7,7 +8,7 @@ const ChatPageView = ({
     currentChatId, chatSessions, hasLoadedSessions,
     handleSendMessage, handleFileUpload,
     createNewChatSession, loadChatSession, deleteChatSession,
-    setError // ADD THIS LINE - receive setError as prop
+    setError
 }) => {
     
     const handleNewChatClick = () => {
@@ -39,6 +40,10 @@ const ChatPageView = ({
         handleFileUpload(file);
     };
 
+    const handleSessionClick = (chatId) => {
+        loadChatSession(chatId);
+    };
+
     return (
         <div className="chat-container">
             <div className="chat-card">
@@ -60,13 +65,19 @@ const ChatPageView = ({
                                 key={session.chat_id}
                                 className={`session-item ${currentChatId === session.chat_id ? 'active' : ''}`}
                             >
-                                <div 
-                                    className="session-name"
-                                    onClick={() => loadChatSession(session.chat_id)}
+                                <Link 
+                                    to={`/chat/${session.chat_id}`}
+                                    className="session-name-link"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleSessionClick(session.chat_id);
+                                    }}
                                     title={session.session_name}
                                 >
-                                    {session.session_name}
-                                </div>
+                                    <div className="session-name">
+                                        {session.session_name}
+                                    </div>
+                                </Link>
                                 <button 
                                     onClick={() => deleteChatSession(session.chat_id)}
                                     className="delete-session-button"

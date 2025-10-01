@@ -1,18 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import './ChatPage.css'; 
 import ChatPageView from './ChatPageView';
 
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
 const ChatPage = ({ user, sessionToken, onSignOut }) => {
+    const { chatId: urlChatId } = useParams(); // Get chatId from URL
+    const navigate = useNavigate(); // For programmatic navigation
+    
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [currentChatId, setCurrentChatId] = useState(null);
+    const [currentChatId, setCurrentChatId] = useState(urlChatId || null);
     const [chatSessions, setChatSessions] = useState([]);
     const [hasLoadedSessions, setHasLoadedSessions] = useState(false);
     const chatEndRef = useRef(null);
+
+    // Sync URL with current chat ID
+    useEffect(() => {
+        if (currentChatId && currentChatId !== urlChatId) {
+            navigate(`/chat/${currentChatId}`, { replace: true });
+        }
+    }, [currentChatId, urlChatId, navigate]);
 
     // Fetch chat sessions on component mount
     useEffect(() => {
@@ -20,6 +31,19 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
             fetchChatSessions();
         }
     }, [sessionToken]);
+
+    // Load chat from URL parameter if provided
+    useEffect(() => {
+        if (urlChatId && sessionToken && hasLoadedSessions) {
+            const chatExists = chatSessions.some(session => session.chat_id === urlChatId);
+            if (chatExists) {
+                loadChatSession(urlChatId);
+            } else {
+                setError("Chat session not found.");
+                navigate('/chat', { replace: true });
+            }
+        }
+    }, [urlChatId, sessionToken, hasLoadedSessions, chatSessions, navigate]);
 
     const fetchChatSessions = async () => {
         try {
@@ -132,10 +156,11 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
                 throw new Error("Failed to delete chat session.");
             }
 
-            // If we're deleting the current chat, clear the current view
+            // If we're deleting the current chat, clear the current view and navigate to main chat
             if (currentChatId === chatId) {
                 setCurrentChatId(null);
                 setMessages([]);
+                navigate('/chat', { replace: true });
             }
 
             await fetchChatSessions(); // Refresh sessions list
@@ -275,7 +300,7 @@ const ChatPage = ({ user, sessionToken, onSignOut }) => {
         currentChatId, chatSessions, hasLoadedSessions,
         handleSendMessage, handleFileUpload,
         createNewChatSession, loadChatSession, deleteChatSession,
-        setError // ADD THIS LINE - pass setError as prop
+        setError
     };
 
     return (

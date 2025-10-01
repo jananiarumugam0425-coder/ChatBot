@@ -577,3 +577,46 @@
 .welcome-message p {
     margin: 10px 0;
 }
+/* Add to ChatPage.css */
+
+.session-name-link {
+    flex-grow: 1;
+    text-decoration: none;
+    color: inherit;
+    margin-right: 8px;
+}
+
+.session-name-link:hover {
+    text-decoration: none;
+}
+
+/* Update session item to handle links properly */
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.session-item:hover {
+    background-color: #333333;
+    border-color: #4169e1;
+}
+
+.session-item.active {
+    background-color: #4169e1;
+    border-color: #4169e1;
+}
+
+.session-name {
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
