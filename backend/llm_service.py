@@ -82,6 +82,73 @@ def create_user(username, password, full_name, email, phone_number, country):
         if temp_client:
             temp_client.close()
 
+            # Add these functions to your existing llm_service.py
+
+def get_user_data_by_email(email):
+    """Retrieves user data by email address."""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        users_collection = get_users_collection(temp_client)
+        
+        user_doc = users_collection.find_one({'email': email})
+        
+        if user_doc:
+            # Remove sensitive data before returning
+            user_doc.pop('_id', None)
+            user_doc.pop('password_hash', None)
+            user_doc.pop('session_token', None)
+            return user_doc
+        return None
+    except Exception as e:
+        logging.error(f"Error retrieving user by email: {e}")
+        return None
+    finally:
+        if temp_client:
+            temp_client.close()
+
+def update_password_by_email(email, new_password):
+    """Updates the user's password hash using email and invalidates session token."""
+    temp_client = None
+    try:
+        temp_client = get_mongo_client()
+        users_collection = get_users_collection(temp_client)
+
+        # Check if user exists with this email
+        user_doc = users_collection.find_one({'email': email})
+        if not user_doc:
+            logging.warning(f"No user found with email: {email}")
+            return False
+
+        # Get username from the found document for logging
+        username = user_doc.get('username')
+
+        # Generate new hash
+        new_hashed_password = hashpw(new_password.encode('utf-8'), gensalt()).decode('utf-8')
+        
+        # Update password hash and clear session token
+        result = users_collection.update_one(
+            {'email': email},
+            {'$set': {
+                'password_hash': new_hashed_password,
+                'session_token': None  # Invalidate any existing session
+            }}
+        )
+        
+        if result.modified_count > 0:
+            logging.info(f"Password reset successful for user {username} (email: {email})")
+            return True
+        else:
+            logging.warning(f"No documents were modified for email: {email}")
+            return False
+    
+    except Exception as e:
+        logging.error(f"Database error during password update by email: {e}")
+        return False
+    finally:
+        if temp_client:
+            temp_client.close()
+
 def verify_user(username, password):
     """
     Verifies user credentials.
@@ -304,46 +371,11 @@ def get_chat_messages(chat_id, username):
                     'timestamp': msg['timestamp'].isoformat()
                 })
             return messages
-        return None  # Return None instead of empty list for non-existent sessions
+        return []
         
     except Exception as e:
         logging.error(f"Error getting chat messages: {e}")
-        return None
-    finally:
-        if temp_client:
-            temp_client.close()
-
-def validate_chat_session(chat_id, username):
-    """Validates if a chat session exists and belongs to the user"""
-    temp_client = None
-    try:
-        temp_client = get_mongo_client()
-        chats_collection = get_chats_collection(temp_client)
-        
-        chat = chats_collection.find_one({
-            'chat_id': chat_id,
-            'username': username
-        })
-        
-        if chat:
-            return {
-                'valid': True,
-                'chat_id': chat_id,
-                'session_name': chat.get('session_name', 'Unknown Session'),
-                'username': username
-            }
-        else:
-            return {
-                'valid': False,
-                'error': 'Chat session not found or access denied'
-            }
-            
-    except Exception as e:
-        logging.error(f"Error validating chat session: {e}")
-        return {
-            'valid': False,
-            'error': f'Error validating chat session: {str(e)}'
-        }
+        return []
     finally:
         if temp_client:
             temp_client.close()

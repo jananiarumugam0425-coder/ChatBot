@@ -1,139 +1,172 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ForgotPasswordView from './ForgotPasswordView';
+import './ForgotPassword.css';
 
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
 const ForgotPassword = () => {
-    const [step, setStep] = useState(1); // 1: Verify username, 2: Reset password
-    const [username, setUsername] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [step, setStep] = useState(1); // 1: email verification, 2: password reset
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [verifiedEmail, setVerifiedEmail] = useState('');
     const navigate = useNavigate();
 
-    const handleVerifyUsername = async (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleEmailVerification = async (e) => {
         e.preventDefault();
         setError('');
         setMessage('');
 
-        if (!username.trim()) {
-            setError('Please enter your username.');
+        if (!formData.email) {
+            setError('Please enter your email address.');
+            return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Please enter a valid email address.');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/verify_username`, {
+            console.log('Verifying email with backend:', formData.email);
+            
+            const response = await fetch(`${API_BASE_URL}/forgot-password/verify-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username }),
+                body: JSON.stringify({ email: formData.email }),
             });
 
             const data = await response.json();
+            console.log('Email verification response:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || 'Username verification failed.');
+                throw new Error(data.error || 'Email verification failed.');
             }
 
-            setMessage("Username verified. Please set a new password.");
+            setVerifiedEmail(formData.email);
+            setMessage('Email verified successfully! You can now set your new password.');
             setStep(2);
 
         } catch (err) {
+            console.error('Email verification error:', err);
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleResetPassword = async (e) => {
+    const handlePasswordReset = async (e) => {
         e.preventDefault();
         setError('');
         setMessage('');
 
-        if (!username.trim()) {
-            setError('Error: Username state lost. Please restart the process.');
-            setStep(1);
+        if (!formData.newPassword || !formData.confirmPassword) {
+            setError('Please fill in all password fields.');
             return;
         }
 
-        if (newPassword.length < 6) {
-            setError('New password must be at least 6 characters long.');
+        if (formData.newPassword.length < 6) {
+            setError('Password must be at least 6 characters long.');
             return;
         }
 
-        if (newPassword !== confirmPassword) {
-            setError('Passwords do not match.');
+        if (formData.newPassword !== formData.confirmPassword) {
+            setError('Passwords do not match. Please try again.');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/reset_password`, {
+            console.log('Resetting password for email:', verifiedEmail);
+            
+            const response = await fetch(`${API_BASE_URL}/forgot-password/reset`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    username, 
-                    new_password: newPassword 
+                    email: verifiedEmail,
+                    new_password: formData.newPassword 
                 }),
             });
 
             const data = await response.json();
+            console.log('Password reset response:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || 'Password reset failed.');
+                throw new Error(data.error || 'Password reset failed. Please try again.');
             }
 
-            setMessage(data.message);
+            setMessage('Password reset successfully! Redirecting to login...');
             
-            // Redirect to login after successful reset
+            // Reset form
+            setFormData({
+                email: '',
+                newPassword: '',
+                confirmPassword: ''
+            });
+            
+            // Redirect to login after delay
             setTimeout(() => {
                 navigate('/login', { 
                     state: { 
-                        message: 'Password successfully reset. Please log in with your new password.' 
+                        message: 'Password reset successfully! Please log in with your new password.' 
                     } 
                 });
-            }, 3000);
+            }, 2000);
 
         } catch (err) {
+            console.error('Password reset error:', err);
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const resetProcess = () => {
+    const handleBackToEmail = () => {
         setStep(1);
-        setUsername('');
-        setNewPassword('');
-        setConfirmPassword('');
         setError('');
         setMessage('');
+        setFormData(prev => ({
+            ...prev,
+            newPassword: '',
+            confirmPassword: ''
+        }));
     };
 
-    // Pass all data and handlers to the view component
+    // Props to pass to ForgotPasswordView
     const viewProps = {
+        formData,
         step,
-        username,
-        newPassword,
-        confirmPassword,
         error,
         message,
         isLoading,
-        setUsername,
-        setNewPassword,
-        setConfirmPassword,
-        handleVerifyUsername,
-        handleResetPassword,
-        resetProcess
+        verifiedEmail,
+        handleChange,
+        handleEmailVerification,
+        handlePasswordReset,
+        handleBackToEmail
     };
 
     return <ForgotPasswordView {...viewProps} />;

@@ -141,7 +141,7 @@
 
 /* FIX: Make the text visible with dark color */
 .login-links p, .signup-links p, .forgot-password-links p {
-    color: grey !important; /* Dark gray color for visibility */
+    color: white !important; /* Dark gray color for visibility */
     margin: 0;
     font-size: 15px;
     font-weight: 500;

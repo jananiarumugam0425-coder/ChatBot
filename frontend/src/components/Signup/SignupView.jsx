@@ -1,91 +1,151 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './Signup.css';
 
 const SignupView = ({
-    username,
-    email,
-    password,
-    confirmPassword,
+    formData,
     error,
     message,
     isLoading,
-    setUsername,
-    setEmail,
-    setPassword,
-    setConfirmPassword,
+    handleChange,
     handleSubmit
 }) => {
     return (
         <div className="signup-container">
             <div className="signup-card">
-                <h2 className="signup-title">Sign Up</h2>
-
-                {message && <div className="signup-success">{message}</div>}
-                {error && <div className="signup-error">{error}</div>}
-
+                <h2 className="signup-title">Create Account</h2>
+                <p className="signup-subtitle">Join our timesheet chatbot platform</p>
+                
+                {message && (
+                    <div className="signup-success">
+                        <strong>Success!</strong> {message}
+                    </div>
+                )}
+                
+                {error && (
+                    <div className="signup-error">
+                        <strong>Error!</strong> {error}
+                    </div>
+                )}
+                
                 <form onSubmit={handleSubmit} className="signup-form">
+                    {/* Username Field */}
                     <div className="form-row">
                         <input
                             type="text"
-                            placeholder="Username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Choose a username"
                             className="signup-input"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
                             required
                             autoComplete="username"
                         />
                     </div>
-
+                    
+                    {/* Password Field */}
+                    <div className="form-row">
+                        <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Create a password (min. 6 characters)"
+                            className="signup-input"
+                            required
+                            autoComplete="new-password"
+                            minLength="6"
+                        />
+                    </div>
+                    
+                    {/* Full Name Field */}
+                    <div className="form-row">
+                        <input
+                            type="text"
+                            name="full_name"
+                            value={formData.full_name}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Enter your full name"
+                            className="signup-input"
+                            required
+                            autoComplete="name"
+                        />
+                    </div>
+                    
+                    {/* Email Field */}
                     <div className="form-row">
                         <input
                             type="email"
-                            placeholder="Email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Enter your email address"
                             className="signup-input"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
                             required
                             autoComplete="email"
                         />
                     </div>
-
+                    
+                    {/* Phone Number Field */}
                     <div className="form-row">
                         <input
-                            type="password"
-                            placeholder="Password"
+                            type="tel"
+                            name="phone_number"
+                            value={formData.phone_number}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Enter your phone number"
                             className="signup-input"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
                             required
-                            autoComplete="new-password"
+                            autoComplete="tel"
                         />
                     </div>
-
+                    
+                    {/* Country Field */}
                     <div className="form-row">
                         <input
-                            type="password"
-                            placeholder="Confirm Password"
+                            type="text"
+                            name="country"
+                            value={formData.country}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                            placeholder="Enter your country"
                             className="signup-input"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            autoComplete="new-password"
+                            autoComplete="country"
                         />
                     </div>
-
+                    
+                    {/* Submit Button */}
                     <button 
                         type="submit" 
-                        className="signup-button"
                         disabled={isLoading}
+                        className="signup-button"
                     >
-                        {isLoading ? 'Creating Account...' : 'Sign Up'}
+                        {isLoading ? (
+                            <>
+                                <span className="loading-spinner"></span>
+                                Creating Account...
+                            </>
+                        ) : (
+                            'Create Account'
+                        )}
                     </button>
+                    
+                    {/* Links Section */}
+                    <div className="signup-links">
+                        <p>
+                            Already have an account? 
+                            <Link to="/login" className="auth-link">
+                                Log in here
+                            </Link>
+                        </p>
+                    </div>
                 </form>
-
-                <div className="signup-links">
-                    <p>
-                        Already have an account? <Link to="/login" className="auth-link">Log In</Link>
-                    </p>
-                </div>
             </div>
         </div>
     );

@@ -18,7 +18,9 @@ try:
         verify_user,
         get_user_by_token,
         get_user_data_by_username,
+        get_user_data_by_email,  # Add this import
         update_password,
+        update_password_by_email,  # Add this import
         # Chat History Functions
         create_chat_session,
         add_message_to_chat,
@@ -39,7 +41,9 @@ except ImportError as e:
     def verify_user(*args, **kwargs): return None, None
     def get_user_by_token(*args, **kwargs): return None
     def get_user_data_by_username(*args, **kwargs): return None
+    def get_user_data_by_email(*args, **kwargs): return None  # Add placeholder
     def update_password(*args, **kwargs): return False
+    def update_password_by_email(*args, **kwargs): return False  # Add placeholder
     # Define placeholder chat functions
     def create_chat_session(*args, **kwargs): return None
     def add_message_to_chat(*args, **kwargs): return False
@@ -149,6 +153,59 @@ def reset_password():
     else:
         # Failure means user not found or a database error
         return jsonify({"error": "Failed to reset password. User may not exist."}), 500
+
+# --- NEW EMAIL-BASED PASSWORD RESET ROUTES ---
+
+@app.route('/forgot-password/verify-email', methods=['POST'])
+def verify_email_for_password_reset():
+    """Verify if email exists in the system for password reset"""
+    data = request.json
+    email = data.get('email')
+    
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+    
+    try:
+        # Check if user exists with this email
+        user_data = get_user_data_by_email(email)
+        
+        if user_data:
+            return jsonify({
+                "message": "Email verified successfully.",
+                "email": email
+            }), 200
+        else:
+            return jsonify({"error": "No account found with this email address."}), 404
+            
+    except Exception as e:
+        logging.error(f"Error verifying email: {e}")
+        return jsonify({"error": "An error occurred while verifying email."}), 500
+
+@app.route('/forgot-password/reset', methods=['POST'])
+def reset_password_with_email():
+    """Reset password using email verification"""
+    data = request.json
+    email = data.get('email')
+    new_password = data.get('new_password')
+    
+    if not email or not new_password:
+        return jsonify({"error": "Email and new password are required."}), 400
+    
+    if len(new_password) < 6:
+        return jsonify({"error": "New password must be at least 6 characters."}), 400
+
+    try:
+        # Update password in MongoDB using email
+        success = update_password_by_email(email, new_password)
+        
+        if success:
+            return jsonify({"message": "Password reset successfully. Please log in with your new password."}), 200
+        else:
+            return jsonify({"error": "Failed to reset password. User may not exist."}), 404
+            
+    except Exception as e:
+        logging.error(f"Error resetting password: {e}")
+        return jsonify({"error": "An error occurred while resetting password."}), 500
 
 # -------------------------------------------------------------
 # --- AUTHENTICATION/API HELPER FUNCTIONS (Updated to use MongoDB) ---

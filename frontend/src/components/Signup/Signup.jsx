@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SignupView from './SignupView';
+import './Signup.css';
 
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
@@ -8,85 +9,104 @@ const Signup = ({ onLogin }) => {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        confirmPassword: '',
         full_name: '',
         email: '',
         phone_number: '',
         country: ''
     });
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setMessage('');
 
-        // Validation
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords don't match.");
+        // Validate all fields are filled
+        const { username, password, full_name, email, phone_number, country } = formData;
+        if (!username || !password || !full_name || !email || !phone_number || !country) {
+            setError('Please fill in all fields.');
             return;
         }
 
-        if (formData.password.length < 6) {
-            setError("Password must be at least 6 characters long.");
+        // Validate password length
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters long.');
             return;
         }
 
-        if (!formData.username || !formData.full_name || !formData.email || !formData.phone_number || !formData.country) {
-            setError("All fields are required.");
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address.');
             return;
         }
 
         setIsLoading(true);
 
         try {
+            console.log('Sending signup request with data:', { ...formData, password: '***' });
+            
             const response = await fetch(`${API_BASE_URL}/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password,
-                    full_name: formData.full_name,
-                    email: formData.email,
-                    phone_number: formData.phone_number,
-                    country: formData.country
-                }),
+                body: JSON.stringify(formData),
             });
 
             const data = await response.json();
+            console.log('Signup response:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || 'Sign-up failed.');
+                throw new Error(data.error || 'Signup failed. Please try again.');
             }
 
-            // Success - redirect to login with success message
-            navigate('/login', { 
-                state: { 
-                    message: 'Sign-up successful! Please log in.' 
-                } 
+            // Successful signup - show message and redirect to login
+            setMessage(data.message || 'Signup successful! Please log in.');
+            
+            // Clear form
+            setFormData({
+                username: '',
+                password: '',
+                full_name: '',
+                email: '',
+                phone_number: '',
+                country: ''
             });
 
+            // Redirect to login after successful signup
+            setTimeout(() => {
+                navigate('/login', { 
+                    state: { message: 'Signup successful! Please log in.' } 
+                });
+            }, 2000);
+
         } catch (err) {
+            console.error('Signup error:', err);
             setError(err.message);
+            // Clear password on error
+            setFormData(prev => ({ ...prev, password: '' }));
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Pass all data and handlers to the view component
+    // Props to pass to SignupView
     const viewProps = {
         formData,
         error,
+        message,
         isLoading,
         handleChange,
         handleSubmit
